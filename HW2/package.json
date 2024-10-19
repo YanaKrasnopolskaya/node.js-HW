@@ -1,0 +1,12 @@
+{
+  "name": "yakras_generation_password",
+  "version": "1.0.0",
+  "description": "The generatePassword function allows you to customize the password length and select the character types to be used.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Yana Krasnopolskaya",
+  "license": "ISC"
+}
