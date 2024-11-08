@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs'); // Используем стандартный fs для синхронных операций
+const fs = require('fs');
+const Joi = require('joi');
 
 const app = express();
 
@@ -11,6 +12,11 @@ const dataFilePath = path.join(__dirname, 'users.json');
 
 let users = []; // Массив для хранения пользователей
 let uniqueID = 0;
+
+const userScheme = Joi.object({
+    name: Joi.string().required(),
+    age: Joi.number().required()
+});
 
 // Функция для чтения данных из файла
 function readUsersFromFile() {
@@ -40,6 +46,13 @@ function writeUsersToFile(users) {
 try {
     users = readUsersFromFile(); // Заполняем массив users данными из файла
     console.log('Данные успешно загружены:', users);
+
+    // Проверка максимального ID и инициализация
+    if (users.length > 0) {
+        uniqueID = Math.max(...users.map(user => user.id));
+    } else {
+        uniqueID = 0;
+    }
 } catch (err) {
     console.error('Ошибка загрузки данных:', err);
 }
@@ -63,6 +76,12 @@ app.get('/users/:id', (req, res) => {
 app.post('/users', (req, res) => {
     uniqueID++;
 
+    const userValidate = userScheme.validate(req.body);
+
+    if (userValidate.error) {
+        return res.status(400).send(userValidate.error.details);
+    }
+
     users.push({
         id: uniqueID,
         ...req.body
@@ -72,7 +91,7 @@ app.post('/users', (req, res) => {
         id: uniqueID,
         ...req.body
     });
-    
+
     writeUsersToFile(users);
 });
 
@@ -80,10 +99,16 @@ app.post('/users', (req, res) => {
 app.put('/users/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const updatedUser = req.body;
+    const userValidate = userScheme.validate(updatedUser);
 
     const index = users.findIndex(user => user.id === id);
+
     if (index === -1) {
         return res.status(404).send({ message: `Пользователь с ID=${id} не найден.` });
+    }
+
+    if (userValidate.error) {
+        return res.status(400).send(userValidate.error.details);
     }
 
     // Обновляем данные пользователя
@@ -103,9 +128,12 @@ app.delete('/users/:id', (req, res) => {
     if (index === -1) {
         return res.status(404).send({ message: `Пользователь с ID=${id} не найден.` });
     }
+
+    const deletedUser = users[index];
+
     users.splice(index, 1);
     writeUsersToFile(users);
-    res.status(204).end(); // Ответ без тела
+    res.status(200).json({ user: deletedUser });
 });
 
 app.listen(3000, () => {
