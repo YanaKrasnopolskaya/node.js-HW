@@ -77,7 +77,7 @@ app.post('/users', (req, res) => {
     uniqueID++;
 
     const userValidate = userScheme.validate(req.body);
-
+    // Проверка на валидность введённых данных
     if (userValidate.error) {
         return res.status(400).send(userValidate.error.details);
     }
