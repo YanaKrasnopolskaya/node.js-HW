@@ -11,7 +11,7 @@ app.use(express.json());
 const dataFilePath = path.join(__dirname, 'users.json');
 
 let users = []; // Массив для хранения пользователей
-let uniqueID = 0;
+let uniqueID = 0; // Уникальный ID пользователя
 
 const userScheme = Joi.object({
     name: Joi.string().required(),
